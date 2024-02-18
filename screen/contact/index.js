@@ -2,50 +2,53 @@
 
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
+const url_api = 'http://192.168.1.6:3000/contacts';
 
 const Contact = () => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+
   const [message, setMessage] = useState('');
 
   const handleSubmit = () => {
-
-    if (!name.trim() || !email.trim() || !message.trim()) {
+    if (message.trim() == "") {
       Alert.alert('Error', 'Please fill in all fields');
       return;
+    } else {
+      let cobjContact = { "message": message };
+
+      fetch(url_api, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(cobjContact)
+      })
+        .then((res) => {
+          if (res.status == 201) {
+            console.log('Add To contacts');
+            setMessage('');
+            Alert.alert('Success', 'Message sent successfully!');
+
+          }
+        })
+        .catch((ex) => {
+          console.log(ex);
+        });
     }
 
 
-    console.log('Name:', name);
-    console.log('Email:', email);
-    console.log('Message:', message);
 
 
-    setName('');
-    setEmail('');
-    setMessage('');
 
-    Alert.alert('Success', 'Message sent successfully!');
+
+
+
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Contact Us</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Your Name"
-        value={name}
-        onChangeText={(text) => setName(text)}
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Your Email"
-        value={email}
-        onChangeText={(text) => setEmail(text)}
-        keyboardType="email-address"
-      />
 
       <TextInput
         style={[styles.input, styles.messageInput]}
@@ -72,7 +75,7 @@ const styles = StyleSheet.create({
     fontSize: 25,
     fontWeight: 'bold',
     marginBottom: 20,
-    marginTop:40,
+    marginTop: 40,
   },
   input: {
     height: 40,

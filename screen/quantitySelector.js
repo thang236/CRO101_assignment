@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 const QuantitySelector = ({ initialValue = 1, onQuantityChange, textColor = 'black', iconColor = 'black' }) => {
-  const [quantity, setQuantity] = useState(parseInt(initialValue, 10));
+  const [quantity, setQuantity] = useState(initialValue);
 
   const decreaseQuantity = () => {
     if (quantity > 1) {

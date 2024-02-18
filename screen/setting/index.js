@@ -5,8 +5,8 @@ import { Ionicons } from '@expo/vector-icons';
 const Setting = ({ navigation }) => {
   const handleNavigation = (screenName) => {
     // Navigate to the selected screen
-    // navigation.navigate(screenName);
-    alert(`Screen ${screenName} is under development`)
+    navigation.navigate(screenName);
+    // alert(`Screen ${screenName} is under development`)
   };
 
   return (
@@ -89,8 +89,5 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
 });
-
-// ...
-
 
 export default Setting;

@@ -1,15 +1,84 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, Image, TouchableOpacity, Alert } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
 import { useRoute } from '@react-navigation/native';
 
 const Product = ({ navigation }) => {
   const route = useRoute();
-  const { data, namePro, withwhere, money } = route.params || {};
+  const { data, namePro, withwhere, money, favorite, id, category } = route.params || {};
+  const [selectedSize, setSelectedSize] = useState('small');
+  const [isFavorite, setIsFavorite] = useState();
+  const url_api = 'http://192.168.1.6:3000/carts';
+  const url_apiPro = 'http://192.168.1.6:3000/products/' + id;
 
-  const [selectedSize, setSelectedSize] = useState(null);
-  const [isFavorite, setIsFavorite] = useState(false);
+  useEffect(() => {
+    setIsFavorite(favorite)
+  }, [])
+  console.log(111111, isFavorite);
+
+  let productCarts =
+  {
+    "size": selectedSize,
+    "price": money,
+    "nameProduct": namePro,
+    "description": withwhere,
+    "image": data,
+    "quantity": 1
+  };
+  let productFavorite =
+  {
+    "price": money,
+    "nameProduct": namePro,
+    "description": withwhere,
+    "image": data,
+    "isFavorite": !isFavorite,
+    "category": category
+  };
+
+  const updateFavorite = (productFavorite) => {
+    fetch(url_apiPro, {
+      method: 'PUT',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(productFavorite)
+    })
+      .then((res) => {
+        if (res.status == 200) {
+          alert("Sửa thành công");
+        }
+      })
+      .catch((ex) => {
+        console.log(ex);
+      });
+  };
+
+
+  const saveDataToCartAPI = (productCart) => {
+    fetch(url_api, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(productCart)
+    })
+      .then((res) => {
+        if (res.status == 201)
+          console.log('addcomplete');
+        Alert.alert('Notification', 'Add to cart complete');
+
+      }).catch((er) => console.error(er))
+  }
+
+  const handleAddToCartPress = () => {
+    saveDataToCartAPI(productCarts);
+
+  };
+
+
 
   const handleSizePress = (size) => {
     setSelectedSize(size);
@@ -17,16 +86,25 @@ const Product = ({ navigation }) => {
 
   const handleFavoritePress = () => {
     setIsFavorite(!isFavorite);
+    updateFavorite(productFavorite);
+
   };
+
 
   const handleBackPress = () => {
     navigation.goBack();
   };
 
+
+
+
+
+
+
   return (
     <View style={styles.container}>
       <View style={styles.imageContainer}>
-        <Image style={styles.image} source={data} />
+        <Image style={styles.image} source={{ uri: data }} />
         <View style={styles.overlay}>
           <Text style={styles.overlayTextLarge}>{namePro}</Text>
           <Text style={styles.overlayTextSmall}>{withwhere}</Text>
@@ -35,7 +113,9 @@ const Product = ({ navigation }) => {
         <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.favoriteButton} onPress={handleFavoritePress}>
+        <TouchableOpacity style={styles.favoriteButton} onPress={() => {
+          handleFavoritePress();
+        }}>
           <Ionicons name={isFavorite ? 'heart' : 'heart-outline'} size={30} color="#FF0000" style={styles.heartIcon} />
         </TouchableOpacity>
       </View>
@@ -77,8 +157,8 @@ const Product = ({ navigation }) => {
         <Text style={{ marginHorizontal: 25, marginTop: 10 }}>
           Cappuccino, an Italian classic, blends strong espresso with velvety steamed milk and frothy foam. Served in a small cup, it delivers a harmonious balance of bold flavors and creamy richness, making it a timeless and indulgent choice for coffee lovers.
         </Text>
-        <TouchableOpacity style={styles.btnAdd} onPress={() => alert('Add to cart')}>
-          <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold' }}>Add To Cart     |      {money}</Text>
+        <TouchableOpacity style={styles.btnAdd} onPress={handleAddToCartPress}>
+          <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold' }}>Add To Cart     |      ${money}</Text>
         </TouchableOpacity>
       </View>
     </View>

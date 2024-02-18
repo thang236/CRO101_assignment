@@ -8,11 +8,9 @@ const ProfileForm = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState('123-456-7890');
 
   const handleSave = () => {
-    // Thực hiện các thao tác lưu thông tin người dùng
     console.log('Name:', name);
     console.log('Email:', email);
     console.log('Phone Number:', phoneNumber);
-    // Thêm các thao tác lưu vào cơ sở dữ liệu hoặc gửi yêu cầu API nếu cần
   };
 
   return (

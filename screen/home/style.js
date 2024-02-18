@@ -3,11 +3,13 @@ import {StyleSheet} from 'react-native'
 const styles = StyleSheet.create({
   
     container: {
-        
+        flex:1,
+
         backgroundColor: '#fff',
       },
       innerContainer: {
         marginTop: 60,
+        marginHorizontal:20
           
       },
       avt: {
@@ -47,7 +49,7 @@ const styles = StyleSheet.create({
     },
 
     boxProduct: {
-      height: 230,
+      height: 270,
       width: 190,
       borderRadius:10,
       backgroundColor:'#F3F3F3',
@@ -74,6 +76,9 @@ const styles = StyleSheet.create({
       justifyContent: 'center',
       marginRight:15,
     },
+    selectedCategory: {
+      backgroundColor: '#015C36', // Màu sắc khi được chọn
+    },
 
     productInf:{
       width:'60%',
@@ -86,8 +91,8 @@ const styles = StyleSheet.create({
       borderRadius: 30,
       alignItems: 'center',
       justifyContent: 'center',
-      marginTop:40,
-      marginEnd:10,
+      marginTop:60,
+      marginEnd:20,
 
 
   },

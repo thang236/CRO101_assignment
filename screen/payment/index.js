@@ -1,4 +1,4 @@
-import React,{useState} from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 
@@ -6,12 +6,20 @@ import { Ionicons } from '@expo/vector-icons';
 import card from '../../assets/debitCard.png';
 import cash from '../../assets/cash.jpeg';
 import bankTransfer from '../../assets/bankTransfer.jpeg';
+const url_api_orders = 'http://192.168.1.6:3000/orders';
+const url_cart_del = 'http://192.168.1.6:3000/carts/';
 
 const Payments = ({ navigation }) => {
   const route = useRoute();
-  const { money } = route.params || {};
+  const { money, data } = route.params || {};
+  var idArray = data.map(function (item) {
+    return item.id;
+  });
 
-    const [paymentsBtn, setPaymentsBtn] = useState('Debit Card');
+
+
+
+  const [paymentsBtn, setPaymentsBtn] = useState('Debit Card');
   const handlePaymentMethod = (method) => {
     // Perform actions based on the selected payment method
     console.log(`Selected payment method: ${method}`);
@@ -19,9 +27,57 @@ const Payments = ({ navigation }) => {
   };
 
   const handleBackPress = () => {
-    // Navigate back to the previous screen
     navigation.navigate('Cart');
   };
+
+  const hanldlePayment = () => {
+    saveToOrders();
+  }
+
+  const saveToOrders = () => {
+    fetch(url_api_orders, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data)
+    })
+      .then((res) => {
+        if (res.status == 201) {
+          console.log('Add To Orders');
+          for (let i = 0; i <= idArray.length; i++) {
+            deleteCarts(idArray[i]);
+          }
+          navigation.navigate("Home");
+
+        }
+      })
+      .catch((ex) => {
+        console.log(ex);
+      });
+
+  }
+  const deleteCarts = (id) => {
+
+    fetch(url_cart_del + id, {
+      method: 'DELETE',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data)
+    })
+      .then((res) => {
+        if (res.status == 201) {
+          console.log('delete');
+        }
+      })
+      .catch((ex) => {
+        console.log(ex);
+      });
+  }
+
 
   return (
     <View style={styles.container}>
@@ -60,9 +116,9 @@ const Payments = ({ navigation }) => {
       <View style={styles.bottomRow}>
         <Text style={styles.totalText}>Total: ${money}</Text>
         <TouchableOpacity
-         style={styles.payButton}
-         onPress={()=>alert('pay complete')}
-         >
+          style={styles.payButton}
+          onPress={hanldlePayment}
+        >
           <Text style={styles.payButtonText}>Pay {paymentsBtn}</Text>
         </TouchableOpacity>
       </View>

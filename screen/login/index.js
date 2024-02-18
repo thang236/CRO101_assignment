@@ -9,32 +9,48 @@ const Login = ({ navigation }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [usersArray, setUsersArray] = useState([]);
+  const [passwordsArray, setPasswordsArray] = useState([]);
+  const [name, setName] = useState([]);
+  let nameUser = 'name' ;
 
-  // useEffect(() => {
-  //   const removeTabBar = navigation.addListener('focus', () => {
-  //     navigation.setOptions({
+  useEffect(() => {
+    getDatafromAPI();
+  }, []);
 
-  //     });
-  //   });
+  const getDatafromAPI = () => {
+    fetch('http://192.168.1.6:3000/users')
+      .then(response => response.json())
+      .then(data => {
+        const users = data.map(user => user.username);
+        const passwords = data.map(user => user.password);
+        const name = data.map(user => user.name);
 
-  //   // Hiển thị thanh tab navigation khi rời khỏi màn hình đăng nhập
-  //   const showTabBar = navigation.addListener('blur', () => {
-  //     navigation.setOptions({
-  //       tabBarVisible: true,
-  //     });
-  //   });
+        setUsersArray(users);
+        setPasswordsArray(passwords);
+        setName(name);
+      })
+      .catch(error => console.error('Error fetching data:', error));
+  };
 
-  //   return () => {
-  //     removeTabBar();
-  //     showTabBar();
-  //   };
-  // }, [navigation]);
+  const login = () => {
+    const index = usersArray.indexOf(username);
+    if (index !== -1 && passwordsArray[index] === password) {
+        nameUser = name[index];
+      return true; 
+    } else {
+      return false; 
+    }
+  };
 
   const handleLogin = () => {
-    // Replace 'ABC' and '123' with your actual credentials
-    if (username === 'ABC' && password === '123') {
+    const check = login();
+
+    if (check) {
       console.log('Login successful');
-      navigation.navigate('main');
+      navigation.navigate('main', { nameUserSend: nameUser
+
+      });
       setUsername('');
       setPassword('');
       setErrorMessage('');

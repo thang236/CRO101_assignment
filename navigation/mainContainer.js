@@ -13,46 +13,52 @@ import RegisterScreen from '../screen/signIn';
 import ProductScreen from '../screen/product';
 import PaymentsScreen from '../screen/payment';
 import ProfileScreen from '../screen/profile';
+import HistoryScreen from '../screen/history';
+import { useRoute } from '@react-navigation/native';
+
 
 const Tab = createBottomTabNavigator();
 
-const MainScreen= ({ navigation })=> {
+const MainScreen = ({ navigation }) => {
+  const route = useRoute();
+  const { nameUserSend } = route.params || {};
+
   return (
-   
-      <Tab.Navigator
-        initialRouteName="Home"
-        screenOptions={({ route }) => ({
-          tabBarIcon: ({ focused, color, size }) => {
-            let iconName;
 
-            if (route.name === 'Home') {
-              iconName = focused ? 'home' : 'home-outline';
-            } else if (route.name === 'Favorite') {
-              iconName = focused ? 'heart' : 'heart-outline';
-            } else if (route.name === 'Setting') {
-              iconName = focused ? 'settings' : 'settings-outline';
-            } else if (route.name === 'Contact') {
-              iconName = focused ? 'person' : 'person-outline';
-            }
+    <Tab.Navigator
+      initialRouteName="Home"
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
 
-            return <Ionicons name={iconName} size={size} color={color} />;
-          },
-        })}
-        tabBarOptions={null} 
-      >
-        <Tab.Screen name="Home" component={HomeScreen} />
-        <Tab.Screen name="Favorite" component={FavoriteScreen} options={{ headerShown: false }} />
-        <Tab.Screen name="Contact" component={ContactScreen} options={{ headerShown: false }} />
-        <Tab.Screen name="Setting" component={SettingScreen} />
-        {/* Màn hình  */}
-        <Tab.Screen name="Login" component={LoginScreen} options={{ headerShown: false, tabBarButton: () => null, tabBarVisible: false }} />
-        <Tab.Screen name="Product" component={ProductScreen} options={{ tabBarButton: () => null, headerShown: false }} />
-        <Tab.Screen name="Register" component={RegisterScreen} options={{ tabBarButton: () => null, headerShown: false }} />
-        <Tab.Screen name="Cart" component={CartScreen} options={{ tabBarButton: () => null, headerShown: false }} />
-        <Tab.Screen name="Payments" component={PaymentsScreen} options={{ tabBarButton: () => null, headerShown: false }} />
-        <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarButton: () => null, headerShown: false }} />
-      </Tab.Navigator>
-   
+          if (route.name === 'Home') {
+            iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'Favorite') {
+            iconName = focused ? 'heart' : 'heart-outline';
+          } else if (route.name === 'Setting') {
+            iconName = focused ? 'settings' : 'settings-outline';
+          } else if (route.name === 'Contact') {
+            iconName = focused ? 'person' : 'person-outline';
+          }
+
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+      })}
+      tabBarOptions={null}
+    >
+      <Tab.Screen name="Home" initialParams={{ nameUserSend: nameUserSend }} component={HomeScreen} />
+      <Tab.Screen name="Favorite" component={FavoriteScreen} options={{ headerShown: false }} />
+      <Tab.Screen name="Contact" component={ContactScreen} options={{ headerShown: false }} />
+      <Tab.Screen name="Setting" component={SettingScreen} />
+      {/* Màn hình  */}
+
+      <Tab.Screen name="Product" component={ProductScreen} options={{ tabBarButton: () => null, headerShown: false }} />
+      <Tab.Screen name="Cart" component={CartScreen} options={{ tabBarButton: () => null, headerShown: false }} />
+      <Tab.Screen name="Payments" component={PaymentsScreen} options={{ tabBarButton: () => null, headerShown: false }} />
+      <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarButton: () => null, headerShown: false }} />
+      <Tab.Screen name="History" component={HistoryScreen} options={{ tabBarButton: () => null, headerShown: false }} />
+    </Tab.Navigator>
+
   );
 }
 export default MainScreen;

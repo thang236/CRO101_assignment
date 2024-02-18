@@ -1,209 +1,186 @@
-import { StyleSheet, Text, View, Image, TextInput, TouchableOpacity, KeyboardAvoidingView, Keyboard, Platform, ScrollView } from 'react-native'
-import React, { useState } from 'react'
-import styles from './style'
-import avatar1 from '../../assets/avt.jpeg'
+import React, { useEffect, useState } from 'react';
+import { View, Image, TextInput, TouchableOpacity, FlatList, Text, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-
-import img2 from '../../assets/img2.jpeg';
-import img3 from '../../assets/img3.jpeg';
-import img4 from '../../assets/img4.jpeg';
-
-
-
-
-
+import styles from './style';
+import avatar1 from '../../assets/avt.jpeg';
+import { useRoute } from '@react-navigation/native';
 
 const Home = ({ navigation }) => {
+  const url_Category = 'http://192.168.1.6:3000/category';
+  const url_Product = 'http://192.168.1.6:3000/products';
+
+  const route = useRoute();
+  const nameUserSend = route.params?.nameUserSend || '';
+
+
+  const [products, setProducts] = useState([]);
+  const [category, setCategory] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(1);
+  const [flatListKey, setFlatListKey] = useState(0);
+
+
+
+  const handleCategorySelect = (category) => {
+    setSelectedCategory(category);
+    setFlatListKey(prevKey => prevKey + 1);
+    getDataProductfromAPI(category);
+  };
+
+
+
   React.useLayoutEffect(() => {
     navigation.setOptions({
       headerShown: false,
       headerLeft: () => null,
     });
-
-
   }, [navigation]);
-  return (
-   
 
-      <KeyboardAvoidingView
-      style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={10}
-        
-      >
-         <ScrollView style={styles.innerContainer}>
-          <View style={{marginHorizontal:20}}>
+  useEffect(() => {
+    setFlatListKey(prevKey => prevKey + 1);
+    getDataProductfromAPI(category);
+    getDataCategoryfromAPI();
+    getDataProductfromAPI(selectedCategory);
+  }, []);
+
+
+  const getDataCategoryfromAPI = () => {
+    fetch(url_Category)
+      .then(response => response.json())
+      .then(data => {
+        setCategory(data);
+
+      })
+      .catch(error => console.error('Error fetching data:', error));
+  };
+  const getDataProductfromAPI = (category) => {
+    fetch(url_Product + '?category=' + category)
+      .then(response => response.json())
+      .then(data => {
+        setProducts(data);
+
+
+      })
+      .catch(error => console.error('Error fetching data:', error));
+  };
+
+
+  const renderCategoryItem = ({ item }) => (
+    <TouchableOpacity onPress={() => handleCategorySelect(item.id,)}>
+      <View style={[styles.boxCategory, selectedCategory == item.id && styles.selectedCategory]}>
+        <Text>{item.nameCategory}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+
+
+
+  const renderProductItem = ({ item }) => (
+    <View style={styles.boxProduct}>
+      <TouchableOpacity
+        onPress={() => {
+
+          navigation.navigate('Product', {
+            data: item.image,
+            namePro: item.nameProduct,
+            withwhere: item.description,
+            money: item.price,
+            favorite: item.isFavorite,
+            id: item.id,
+            category: item.category
+          });
+          console.log('chuyuyền vào pro :', item.isFavorite);
+        }}>
+        <Image style={styles.imgProduct} source={{ uri: item.image }} />
+      </TouchableOpacity>
+      <View style={styles.addCart}>
+        <View style={styles.productInf}>
+          <Text style={{ marginTop: 10, fontSize: 17, marginStart: 12, fontWeight: 'bold' }}>{item.nameProduct}</Text>
+          <Text style={{ fontSize: 10, marginTop: 7, marginStart: 13 }}>{item.description}</Text>
+          <Text style={{ marginTop: 10, fontSize: 17, marginStart: 12, fontWeight: 'bold' }}>${item.price}</Text>
+        </View>
+        <TouchableOpacity
+          onPress={() => {
+            alert('add cart complete', 'Notification');
+          }}
+        >
+          <View style={styles.iconAdd}>
+            <Text style={{ fontSize: 30, color: 'white', alignSelf: 'center', marginBottom: 3, marginLeft: 2 }}>+</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  const renderSpecialItem = ({ item }) => (
+    <TouchableOpacity style={styles.boxOffer}
+      onPress={() => {
+
+        navigation.navigate('Product', {
+          data: item.image,
+          namePro: item.nameProduct,
+          withwhere: item.description,
+          money: item.price,
+          favorite: item.isFavorite,
+          id: item.id,
+          category: item.category
+        });
+        console.log('chuyuyền vào pro :', item.isFavorite);
+      }}
+    >
+      <Image source={{ uri: item.image }} style={styles.imgOffer} />
+      <Text style={{ alignSelf: 'center', fontSize: 19, width: '50%' }}>{item.description}</Text>
+
+    </TouchableOpacity>
+  );
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.innerContainer}>
         <View style={styles.flexRow}>
           <View style={styles.item1}>
             <TouchableOpacity
-            onPress={() => navigation.navigate('Profile')}
-            >
+              onPress={() => navigation.navigate('Profile')}>
               <Image style={styles.avt} source={avatar1} />
             </TouchableOpacity>
-            <Text style={{ fontSize: 20, marginTop: 10, fontWeight: 'bold' }}> Hello name </Text>
+            <Text style={{ fontSize: 20, marginTop: 10, fontWeight: 'bold' }}> Hello {nameUserSend} </Text>
           </View>
-
           <TouchableOpacity
-          onPress={()=>{
-            navigation.navigate("Cart")
-          }}
-           style={styles.touchableOpacity}>
+            onPress={() => navigation.navigate("Cart")}
+            style={styles.touchableOpacity}>
             <Ionicons name="cart" size={30} color="#055E38" style={styles.cartIcons} />
           </TouchableOpacity>
         </View>
-
         <View style={styles.search}>
           <TextInput
             placeholder='Search coffee'
             style={styles.input}></TextInput>
-          {/* <TouchableOpacity
-          onPress={()=>{}}>
-              <Ionicons name="search" size={20} color="#555" style={styles.searchIcon} />
-          </TouchableOpacity> */}
         </View>
         <Text style={{ fontSize: 25, fontWeight: 'bold' }}>Category</Text>
-        <ScrollView
-          horizontal={true}
-          contentContainerStyle={{ flexDirection: 'row' }}
-        >
-          <View style={styles.boxCategoryChoose}>
-            <Text>Cappuccino</Text>
-          </View>
+        <FlatList
+          horizontal
+          data={category}
+          renderItem={renderCategoryItem}
+          keyExtractor={(item, index) => index.toString()}
+        />
 
-          <View style={styles.boxCategory}>
-            <Text>Cold Brew</Text>
-          </View>
+        <FlatList
+          key={flatListKey}
+          horizontal
+          data={products}
+          renderItem={renderProductItem}
 
-          <View style={styles.boxCategory}>
-            <Text>Espresso</Text>
-          </View>
-        </ScrollView>
-
-        <ScrollView
-          horizontal={true}
-          contentContainerStyle={{ flexDirection: 'row' }}
-        >
-          <View style={styles.boxProduct}>
-            <TouchableOpacity
-              onPress={() => {
-                console.log('product button pressed');
-                navigation.navigate('Product', {
-                  data: img2,
-                  namePro: 'Cappuccino',
-                  withwhere: 'with chocolate',
-                  money: '$4,4'
-                })
-              }}>
-              <Image style={styles.imgProduct} source={img2} />
-
-            </TouchableOpacity>
-            <View style={styles.addCart}>
-              <View style={styles.productInf}>
-                <Text style={{ marginTop: 10, fontSize: 17, marginStart: 12, fontWeight: 'bold' }}>Cappuccino</Text>
-                <Text style={{ fontSize: 10, marginTop: 7, marginStart: 13 }}>with chocolate</Text>
-                <Text style={{ marginTop: 10, fontSize: 17, marginStart: 12, fontWeight: 'bold' }}>$4,4</Text>
-              </View>
-              <TouchableOpacity
-                onPress={() => {
-                  alert('add cart complete', 'Notification');
-                }}
-              >
-                <View style={styles.iconAdd}>
-                  <Text style={{ fontSize: 30, color: 'white' }}>+</Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <View style={styles.boxProduct}>
-            <TouchableOpacity
-              onPress={() => {
-                console.log('product button pressed');
-                navigation.navigate('Product', {
-                  data: img3,
-                  namePro: 'Cappuccino',
-                  withwhere: 'with Cacao',
-                  money: '$4,1'
-                })
-              }}>
-              <Image style={styles.imgProduct} source={img3} />
-
-            </TouchableOpacity>
-            <View style={styles.addCart}>
-              <View style={styles.productInf}>
-                <Text style={{ marginTop: 10, fontSize: 17, marginStart: 12, fontWeight: 'bold' }}>Cappuccino</Text>
-                <Text style={{ fontSize: 10, marginTop: 7, marginStart: 13 }}>with Cacao</Text>
-                <Text style={{ marginTop: 10, fontSize: 17, marginStart: 12, fontWeight: 'bold' }}>$4,1</Text>
-              </View>
-              <TouchableOpacity
-                onPress={() => {
-                  alert('add cart complete', 'Notification');
-                }}
-              >
-                <View style={styles.iconAdd}>
-                  <Text style={{ fontSize: 30, color: 'white' }}>+</Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <View style={styles.boxProduct}>
-            <TouchableOpacity
-              onPress={() => {
-                console.log('product button pressed');
-                navigation.navigate('Product', {
-                  data: img4,
-                  namePro: 'Cappuccino',
-                  withwhere: 'with black beans',
-                  money: '$8,4'
-                })
-              }}>
-              <Image style={styles.imgProduct} source={img4} />
-
-            </TouchableOpacity>
-            <View style={styles.addCart}>
-              <View style={styles.productInf}>
-                <Text style={{ marginTop: 10, fontSize: 17, marginStart: 12, fontWeight: 'bold' }}>Cappuccino</Text>
-                <Text style={{ fontSize: 10, marginTop: 7, marginStart: 13 }}>with black beans</Text>
-                <Text style={{ marginTop: 10, fontSize: 17, marginStart: 12, fontWeight: 'bold' }}>$8,4</Text>
-              </View>
-              <TouchableOpacity
-                onPress={() => {
-                  alert('add cart complete', 'Notification');
-                }}
-              >
-                <View style={styles.iconAdd}>
-                  <Text style={{ fontSize: 30, color: 'white' }}>+</Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-        </ScrollView>
-
+          keyExtractor={(item, index) => index.toString()}
+        />
         <Text style={styles.content}>Special offer</Text>
+        <FlatList
+          data={products}
+          renderItem={renderSpecialItem}
+          keyExtractor={(item, index) => index.toString()}
+        />
 
-        <View style={styles.boxOffer}>
-          <Image style={styles.imgOffer} source={img4} />
-          <Text style={{ fontWeight: 'bold', fontSize: 20, alignSelf: 'center', flexWrap: 'wrap', width: 200 }}>A refreshing cup of black coffee</Text>
-        </View>
-
-        <View style={styles.boxOffer}>
-          <Image style={styles.imgOffer} source={img4} />
-          <Text style={{ fontWeight: 'bold', fontSize: 20, alignSelf: 'center', flexWrap: 'wrap', width: 200 }}>A refreshing cup of black coffee</Text>
-        </View>
-
-
-
-        </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-
-
-  )
+      </View>
+    </View>
+  );
 }
 
 export default Home;
-
-
-

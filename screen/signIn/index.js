@@ -12,14 +12,62 @@ const Register = ({ navigation }) => {
   const [address, setAddress] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
-  const handleRegister = () => {
-    // Validate and handle registration logic here
-    if (username.trim() === '' || password.trim() === '' || email.trim() === '') {
-      setErrorMessage('Please fill in all required fields.');
-    } else {
-      // Perform registration logic (e.g., send data to server)
+  const registerUser = (userData) => {
+    fetch('http://192.168.1.6:3000/users', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(userData),
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('User registered successfully:', data);
       console.log('Registration successful');
-      navigation.navigate('Home');
+      navigation.navigate('main', { nameUserSend: fullname
+
+      });
+    })
+    .catch(error => {
+      console.error('Error registering user:', error);
+    });
+  };
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const isValidEmail = (email) => {
+    return emailPattern.test(email);
+  };
+  const phonePattern = /^[0-9]{10}$/;
+  const isValidPhone = (phone) => {
+    return phonePattern.test(phone);
+  };
+
+
+
+
+  const handleRegister = () => {
+    if (fullname.trim() === '' || username.trim() === '' || password.trim() === ''|| email.trim() ==='' || phone.trim() ==='' || address.trim() ==='') {
+      setErrorMessage('Please fill in all required fields.');
+    }else if(!isValidEmail(email)) {
+      setErrorMessage('Please fill true email.');
+      
+    } else if (!isValidPhone(phone)) {
+      setErrorMessage('Please fill true phone.');
+    }
+     else {
+      const userData = {
+        username: username,
+        password: password,
+        name: fullname,
+        email: email,
+        phone: phone,
+        address: address,
+      };
+      registerUser(userData);
     }
   };
 
@@ -31,7 +79,7 @@ const Register = ({ navigation }) => {
       >
         <View style={styles.innerContainer}>
           <Image style={styles.logo} source={logo} />
-          <Text style={{ fontSize: 25, fontWeight: 'bold',marginBottom:30 }}>Create an Account</Text>
+          <Text style={{ fontSize: 25, fontWeight: 'bold', marginBottom: 30 }}>Create an Account</Text>
 
           <View style={styles.inputContainer}>
             <TextInput
@@ -115,12 +163,12 @@ const styles = StyleSheet.create({
   input: {
     height: 40,
     width: 350,
-    borderRadius:10,
+    borderRadius: 10,
     borderColor: 'gray',
     borderWidth: 1,
     marginBottom: 10,
     paddingLeft: 10,
-    marginTop:10,
+    marginTop: 10,
   },
   errorText: {
     color: 'red',

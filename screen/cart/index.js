@@ -1,35 +1,106 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Image, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet, FlatList, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import QuantitySelector from '../quantitySelector';
-import img2 from '../../assets/img2.jpeg'
-import img3 from '../../assets/img3.jpeg'
+import img3 from '../../assets/img3.jpeg';
+
+const url_cart = 'http://192.168.1.6:3000/carts';
 
 const Cart = ({ navigation }) => {
-  const [quantity1, setQuantity1] = useState(1);
-  const [quantity2, setQuantity2] = useState(1);
-  const [totalQuantity, setTotalQuantity] = useState(2);
-
-  const [items1, setItems1] = useState(4.4);
-  const [items2, setItems2] = useState(4.1);
+  const [products, setProducts] = useState([]);
   const [total, setTotal] = useState(0);
-
-  const handleQuantityChange1 = (newQuantity) => {
-    setQuantity1(newQuantity);
-  };
-
-  const handleQuantityChange2 = (newQuantity) => {
-    setQuantity2(newQuantity);
-  };
+  const [totalItems, setTotalItems] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    if (quantity1 && quantity2 && items1 && items2) {
-      const newTotal = (quantity1 * items1 + quantity2 * items2);
-      setTotal(newTotal);
-      const newTotalQuantity = quantity1+quantity2;
-      setTotalQuantity(newTotalQuantity);
-    }
-  }, [quantity1, quantity2, items1, items2]);
+    getProdcutFromAPI();
+  }, []);
+
+  const getProdcutFromAPI = () => {
+    fetch(url_cart)
+      .then((res) => res.json())
+      .then(data => {
+        setProducts(data);
+        calculateTotal(data);
+        setTotalItems(data.length);
+        setRefreshing(false);
+      })
+      .catch(error => {
+        console.error('Error fetching products: ', error);
+        setRefreshing(false);
+      });
+  };
+
+  const calculateTotal = (data) => {
+    let totalAmount = 0;
+    data.forEach(item => {
+      totalAmount += item.price * item.quantity;
+    });
+    setTotal(totalAmount);
+  };
+
+  const handleQuantityChange = (newQuantity, index) => {
+    const updatedProducts = [...products];
+    updatedProducts[index].quantity = newQuantity;
+    setProducts(updatedProducts);
+    calculateTotal(updatedProducts);
+  };
+
+
+  const handleRemoveCart = (id) => {
+    let url_del = 'http://192.168.1.6:3000/carts/' + id;
+    console.log(url_del);
+
+    fetch(url_del, {
+      method: 'DELETE',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      }
+    })
+      .then((res) => {
+        if (res.status == 200) {
+          console.log('Delete');
+          getProdcutFromAPI();
+        }
+      }).catch((ex) => console.log(ex));
+  }
+
+  const renderProductItem = ({ item, index }) => (
+    <View>
+
+      <View style={styles.itemContainer}>
+        <Image style={styles.productImage} source={{ uri: item.image }} />
+        <View style={styles.infoItem}>
+          <Text style={styles.titleSmall}>{item.nameProduct}</Text>
+          <Text>{item.description}</Text>
+          <Text style={styles.price}>$ {item.price}</Text>
+          <QuantitySelector
+            initialValue={item.quantity}
+            onQuantityChange={(newQuantity) => handleQuantityChange(newQuantity, index)}
+          />
+
+        </View>
+        <TouchableOpacity style={{
+          alignSelf: 'flex-end'
+        }} onPress={() => handleRemoveCart(item.id)}
+        >
+          <Ionicons name="trash" size={30} color="#055E38" />
+        </TouchableOpacity>
+
+
+      </View>
+      <View style={styles.line}></View>
+
+    </View>
+
+  );
+
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    getProdcutFromAPI();
+  };
 
   return (
     <View style={styles.container}>
@@ -41,49 +112,28 @@ const Cart = ({ navigation }) => {
       </View>
       <View style={styles.boxText}>
         <Ionicons name="bag-check" size={20} color="#FF7B33" style={styles.cartIcons} />
-        <Text style={{ color: '#FF7B33', fontSize: 16, fontWeight: '500' }}>You have {totalQuantity} items in your cart</Text>
+        <Text style={{ color: '#FF7B33', fontSize: 16, fontWeight: '500' }}>You have {totalItems} items in your cart</Text>
       </View>
 
-      <ScrollView>
-        <View style={styles.itemContainer}>
-          <Image style={styles.productImage} source={img2} />
-          <View style={styles.infoItem}>
-            <Text style={styles.titleSmall}>Cappuccino</Text>
-            <Text>with chocolate</Text>
-            <Text style={styles.price}>$ {items1}</Text>
-            <QuantitySelector initialValue={quantity1} onQuantityChange={handleQuantityChange1} />
-          </View>
-        </View>
-        <View style={styles.line} />
-
-        <View style={styles.itemContainer}>
-          <Image style={styles.productImage} source={img3} />
-          <View style={styles.infoItem}>
-            <Text style={styles.titleSmall}>Cappuccino</Text>
-            <Text>with Cacao</Text>
-            <Text style={styles.price}>$ {items2}</Text>
-            <QuantitySelector initialValue={quantity2} onQuantityChange={handleQuantityChange2} />
-          </View>
-        </View>
-        <View style={styles.line} />
-      </ScrollView>
+      <FlatList
+        style={{ marginBottom: 20 }}
+        data={products}
+        renderItem={renderProductItem}
+        keyExtractor={(item, index) => index.toString()}
+        refreshControl={ // Sử dụng RefreshControl để xử lý sự kiện làm mới
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+          />
+        }
+      />
 
       <View style={styles.total}>
         <View style={styles.flexRowTotal}>
-          <Text style={styles.textDescription}>Items</Text>
+          <Text style={styles.textDescription}>Total</Text>
           <Text style={styles.textMoney}>$ {total}</Text>
         </View>
-        <View style={styles.flexRowTotal}>
-          <Text style={styles.textDescription}>Discount</Text>
-          <Text style={styles.textMoney}>$ 0.1</Text>
-        </View>
-        <View style={[styles.line, { marginBottom: 20 }]} />
-
-        <View style={styles.flexRowTotal}>
-          <Text style={styles.textDescription}>Total</Text>
-          <Text style={styles.textMoney}>$ {total - 0.1}</Text>
-        </View>
-        <TouchableOpacity onPress={() => navigation.navigate('Payments',{money:(total-0.1)})} style={styles.btnPay}>
+        <TouchableOpacity onPress={() => navigation.navigate('Payments', { money: total, data: products })} style={styles.btnPay}>
           <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 17 }}>Check out</Text>
         </TouchableOpacity>
       </View>
@@ -120,6 +170,7 @@ const styles = StyleSheet.create({
   },
   cartIcons: {
     marginRight: 10,
+
   },
   itemContainer: {
     flex: 1,
@@ -134,6 +185,7 @@ const styles = StyleSheet.create({
   },
   infoItem: {
     marginStart: 20,
+    width: '50%'
   },
   titleSmall: {
     fontSize: 20,
@@ -152,12 +204,14 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     alignSelf: 'center',
     marginTop: 25,
+
     borderColor: '#E5E5E5',
   },
   total: {
-    bottom: 50,
+    marginTop: 20,
+    bottom: 30,
     width: '100%',
-    height: 170,
+    height: 90,
   },
   flexRowTotal: {
     flex: 1,
@@ -177,7 +231,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#1F1F1F',
     height: 40,
     width: '70%',
-    marginTop: 20,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 20,
