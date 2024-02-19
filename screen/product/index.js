@@ -8,32 +8,48 @@ const Product = ({ navigation }) => {
   const route = useRoute();
   const { data, namePro, withwhere, money, favorite, id, category } = route.params || {};
   const [selectedSize, setSelectedSize] = useState('small');
-  const [isFavorite, setIsFavorite] = useState();
+  const [isFavorite, setIsFavorite] = useState(favorite);
   const url_api = 'http://192.168.1.6:3000/carts';
   const url_apiPro = 'http://192.168.1.6:3000/products/' + id;
 
+  const [product, setProduct] = useState([]);
+
+  const getProductFromAPI = () => {
+    fetch(url_apiPro)
+      .then(res => res.json())
+      .then(data => {
+        setProduct(data);
+        setIsFavorite(data.isFavorite)
+        console.log(data);
+      })
+      .catch((ex) => console.log(ex))
+  }
+
   useEffect(() => {
+    getProductFromAPI();
     setIsFavorite(favorite)
-  }, [])
-  console.log(111111, isFavorite);
+
+
+  }, [id])
+
 
   let productCarts =
   {
     "size": selectedSize,
-    "price": money,
-    "nameProduct": namePro,
-    "description": withwhere,
-    "image": data,
+    "price": product.price,
+    "nameProduct": product.nameProduct,
+    "description": product.description,
+    "image": product.image,
     "quantity": 1
   };
   let productFavorite =
   {
-    "price": money,
-    "nameProduct": namePro,
-    "description": withwhere,
-    "image": data,
+    "price": product.price,
+    "nameProduct": product.nameProduct,
+    "description": product.description,
+    "image": product.image,
     "isFavorite": !isFavorite,
-    "category": category
+    "category": product.category
   };
 
   const updateFavorite = (productFavorite) => {
@@ -104,10 +120,10 @@ const Product = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.imageContainer}>
-        <Image style={styles.image} source={{ uri: data }} />
+        <Image style={styles.image} source={{ uri: product.image }} />
         <View style={styles.overlay}>
-          <Text style={styles.overlayTextLarge}>{namePro}</Text>
-          <Text style={styles.overlayTextSmall}>{withwhere}</Text>
+          <Text style={styles.overlayTextLarge}>{product.name}</Text>
+          <Text style={styles.overlayTextSmall}>{product.description}</Text>
         </View>
         <View style={styles.overlayBottom} />
         <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
@@ -158,7 +174,7 @@ const Product = ({ navigation }) => {
           Cappuccino, an Italian classic, blends strong espresso with velvety steamed milk and frothy foam. Served in a small cup, it delivers a harmonious balance of bold flavors and creamy richness, making it a timeless and indulgent choice for coffee lovers.
         </Text>
         <TouchableOpacity style={styles.btnAdd} onPress={handleAddToCartPress}>
-          <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold' }}>Add To Cart     |      ${money}</Text>
+          <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold' }}>Add To Cart     |      ${product.price}</Text>
         </TouchableOpacity>
       </View>
     </View>

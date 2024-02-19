@@ -12,7 +12,9 @@ const Login = ({ navigation }) => {
   const [usersArray, setUsersArray] = useState([]);
   const [passwordsArray, setPasswordsArray] = useState([]);
   const [name, setName] = useState([]);
-  let nameUser = 'name' ;
+  const [ids, setIds] = useState([]);
+  let nameUser = 'name';
+  let idSend = '';
 
   useEffect(() => {
     getDatafromAPI();
@@ -22,13 +24,16 @@ const Login = ({ navigation }) => {
     fetch('http://192.168.1.6:3000/users')
       .then(response => response.json())
       .then(data => {
+        const id = data.map(user => user.id)
         const users = data.map(user => user.username);
         const passwords = data.map(user => user.password);
         const name = data.map(user => user.name);
 
+
         setUsersArray(users);
         setPasswordsArray(passwords);
         setName(name);
+        setIds(id);
       })
       .catch(error => console.error('Error fetching data:', error));
   };
@@ -36,10 +41,11 @@ const Login = ({ navigation }) => {
   const login = () => {
     const index = usersArray.indexOf(username);
     if (index !== -1 && passwordsArray[index] === password) {
-        nameUser = name[index];
-      return true; 
+      nameUser = name[index];
+      idSend = ids[index]
+      return true;
     } else {
-      return false; 
+      return false;
     }
   };
 
@@ -48,7 +54,8 @@ const Login = ({ navigation }) => {
 
     if (check) {
       console.log('Login successful');
-      navigation.navigate('main', { nameUserSend: nameUser
+      navigation.navigate('main', {
+        nameUserSend: nameUser, id: idSend
 
       });
       setUsername('');

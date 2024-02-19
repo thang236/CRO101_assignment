@@ -1,13 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Alert, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Alert, Modal, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+
 const url_api = 'http://192.168.1.6:3000/products?isFavorite=1';
 
 const Favorite = () => {
   const [favoriteItems, setFavoriteItem] = useState([]);
-  const [productUpdate, setProductUpdate] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [deleteConfirmationVisible, setDeleteConfirmationVisible] = useState(false);
+  const [selectedItemId, setSelectedItemId] = useState(null);
+
+  const navigation = useNavigation();
+
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     console.log("Bắt đầu load lại dữ liệu");
@@ -19,9 +24,9 @@ const Favorite = () => {
     }, 1000);
   }, []);
 
-
-  let url_Update;
-  const navigation = useNavigation();
+  useEffect(() => {
+    getFavoritesfromAPI();
+  }, []);
 
   const getFavoritesfromAPI = async () => {
     try {
@@ -33,61 +38,37 @@ const Favorite = () => {
     }
   }
 
-  useEffect(() => {
-    getFavoritesfromAPI();
-
-  }, [])
   const handleRemoveFavorite = (id) => {
-    url_Update = 'http://192.168.1.6:3000/products/';
-    url_Update = url_Update + id
-    console.log(url_Update);
-    getOne(id);
-
-
-
-
-
-
-
+    setSelectedItemId(id);
+    setDeleteConfirmationVisible(true);
   };
 
-  const getOne = (id) => {
-    fetch('http://192.168.1.6:3000/products?id=' + id)
-      .then(response => response.json())
-      .then(data => {
-        setProductUpdate(data);
-        updatedProduct = { ...data[0] };
-        updatedProduct.isFavorite = false;
-
-        console.log(updatedProduct);
-        removeFavorite(updatedProduct);
-
+  const handleConfirmDelete = () => {
+    if (selectedItemId) {
+      let url_Update = 'http://192.168.1.6:3000/products/' + selectedItemId;
+      fetch(url_Update, {
+        method: 'PUT',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ isFavorite: false })
       })
-      .catch(error => console.error('Error fetching data:', error));
+        .then((res) => {
+          if (res.status == 200) {
+            Alert.alert('Notification', "Successfully deleted favorites list");
+          }
+        })
+        .catch((ex) => {
+          console.log(ex);
+        });
+    }
+    setDeleteConfirmationVisible(false);
   };
 
-
-  const removeFavorite = (productFavorite) => {
-    fetch(url_Update, {
-      method: 'PUT',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(productFavorite)
-    })
-      .then((res) => {
-        if (res.status == 200) {
-          Alert.alert('Notification', "Successfully deleted favorites list");
-          getFavoritesfromAPI();
-        }
-      })
-      .catch((ex) => {
-        console.log(ex);
-      });
-
-  }
-
+  const handleCancelDelete = () => {
+    setDeleteConfirmationVisible(false);
+  };
 
   const handleFavoriteItemPress = (item) => {
     navigation.navigate('aaa', {
@@ -126,10 +107,36 @@ const Favorite = () => {
           </TouchableOpacity>
         </TouchableOpacity>
       ))}
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={deleteConfirmationVisible}
+        onRequestClose={handleCancelDelete}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>Bạn có chắc chắn muốn xóa không?</Text>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={{ ...styles.button, backgroundColor: '#2196F3' }}
+                onPress={handleCancelDelete}
+              >
+                <Text style={styles.textStyle}>Hủy</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{ ...styles.button, backgroundColor: '#FF0000' }}
+                onPress={handleConfirmDelete}
+              >
+                <Text style={styles.textStyle}>Xác nhận</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {
@@ -169,12 +176,52 @@ const styles = StyleSheet.create({
   favoriteItemPrice: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#055E38', // Adjust the color to match your theme
+    color: '#055E38',
     marginTop: 5,
   },
   favoriteItemRemoveButton: {
     padding: 10,
     borderRadius: 5,
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalView: {
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+  },
+  button: {
+    borderRadius: 10,
+    padding: 10,
+    elevation: 2,
+    marginHorizontal: 10,
+  },
+  textStyle: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
 

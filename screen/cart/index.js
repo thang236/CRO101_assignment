@@ -14,7 +14,7 @@ const Cart = ({ navigation }) => {
 
   useEffect(() => {
     getProdcutFromAPI();
-  }, []);
+  }, [products]);
 
   const getProdcutFromAPI = () => {
     fetch(url_cart)

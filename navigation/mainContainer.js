@@ -21,7 +21,8 @@ const Tab = createBottomTabNavigator();
 
 const MainScreen = ({ navigation }) => {
   const route = useRoute();
-  const { nameUserSend } = route.params || {};
+  const { nameUserSend, id } = route.params || {};
+
 
   return (
 
@@ -46,7 +47,7 @@ const MainScreen = ({ navigation }) => {
       })}
       tabBarOptions={null}
     >
-      <Tab.Screen name="Home" initialParams={{ nameUserSend: nameUserSend }} component={HomeScreen} />
+      <Tab.Screen name="Home" initialParams={{ nameUserSend: id }} component={HomeScreen} />
       <Tab.Screen name="Favorite" component={FavoriteScreen} options={{ headerShown: false }} />
       <Tab.Screen name="Contact" component={ContactScreen} options={{ headerShown: false }} />
       <Tab.Screen name="Setting" component={SettingScreen} />
@@ -55,7 +56,7 @@ const MainScreen = ({ navigation }) => {
       <Tab.Screen name="Product" component={ProductScreen} options={{ tabBarButton: () => null, headerShown: false }} />
       <Tab.Screen name="Cart" component={CartScreen} options={{ tabBarButton: () => null, headerShown: false }} />
       <Tab.Screen name="Payments" component={PaymentsScreen} options={{ tabBarButton: () => null, headerShown: false }} />
-      <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarButton: () => null, headerShown: false }} />
+      <Tab.Screen name="Profile" initialParams={{ idSends: id }} component={ProfileScreen} options={{ tabBarButton: () => null, headerShown: false }} />
       <Tab.Screen name="History" component={HistoryScreen} options={{ tabBarButton: () => null, headerShown: false }} />
     </Tab.Navigator>
 

@@ -8,9 +8,26 @@ import { useRoute } from '@react-navigation/native';
 const Home = ({ navigation }) => {
   const url_Category = 'http://192.168.1.6:3000/category';
   const url_Product = 'http://192.168.1.6:3000/products';
+  const [userData, setUserData] = useState({});
+  const [nameUser, setNameUser] = useState('');
+
 
   const route = useRoute();
   const nameUserSend = route.params?.nameUserSend || '';
+  const url_API_user = 'http://192.168.1.6:3000/users/' + nameUserSend;
+  const getUserFromAPI = () => {
+    fetch(url_API_user)
+      .then(res => res.json())
+      .then(data => {
+        setUserData(data);
+        setNameUser(data.name)
+        console.log(123123, nameUser);
+      })
+
+  }
+
+
+
 
 
   const [products, setProducts] = useState([]);
@@ -24,7 +41,9 @@ const Home = ({ navigation }) => {
     setSelectedCategory(category);
     setFlatListKey(prevKey => prevKey + 1);
     getDataProductfromAPI(category);
+    getUserFromAPI();
   };
+
 
 
 
@@ -36,11 +55,12 @@ const Home = ({ navigation }) => {
   }, [navigation]);
 
   useEffect(() => {
-    setFlatListKey(prevKey => prevKey + 1);
+
     getDataProductfromAPI(category);
     getDataCategoryfromAPI();
     getDataProductfromAPI(selectedCategory);
-  }, []);
+    getUserFromAPI();
+  }, [userData.name]);
 
 
   const getDataCategoryfromAPI = () => {
@@ -48,6 +68,7 @@ const Home = ({ navigation }) => {
       .then(response => response.json())
       .then(data => {
         setCategory(data);
+
 
       })
       .catch(error => console.error('Error fetching data:', error));
@@ -57,7 +78,6 @@ const Home = ({ navigation }) => {
       .then(response => response.json())
       .then(data => {
         setProducts(data);
-
 
       })
       .catch(error => console.error('Error fetching data:', error));
@@ -142,7 +162,7 @@ const Home = ({ navigation }) => {
               onPress={() => navigation.navigate('Profile')}>
               <Image style={styles.avt} source={avatar1} />
             </TouchableOpacity>
-            <Text style={{ fontSize: 20, marginTop: 10, fontWeight: 'bold' }}> Hello {nameUserSend} </Text>
+            <Text style={{ fontSize: 20, marginTop: 10, fontWeight: 'bold' }}> Hello {nameUser} </Text>
           </View>
           <TouchableOpacity
             onPress={() => navigation.navigate("Cart")}
@@ -176,6 +196,7 @@ const Home = ({ navigation }) => {
           data={products}
           renderItem={renderSpecialItem}
           keyExtractor={(item, index) => index.toString()}
+          scrollEnabled
         />
 
       </View>

@@ -1,24 +1,64 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRoute } from '@react-navigation/native';
+
 
 const ProfileForm = ({ navigation }) => {
+  const route = useRoute();
+  const idSend = route.params?.idSends || '';
+
   const [name, setName] = useState('Thăng Hoàng');
   const [email, setEmail] = useState('thanghtph31577@fpt.edu.vn');
   const [phoneNumber, setPhoneNumber] = useState('123-456-7890');
+  const [userData, setUserData] = useState({});
+  const url_API = 'http://192.168.1.6:3000/users/' + idSend;
+
+  useEffect(() => {
+    getUserFromAPI();
+  }, [])
+  const getUserFromAPI = () => {
+    fetch(url_API)
+      .then(res => res.json())
+      .then(data => {
+        setUserData(data);
+        setEmail(data.email);
+        setName(data.name);
+        setPhoneNumber(data.phone);
+      })
+
+  }
 
   const handleSave = () => {
-    console.log('Name:', name);
-    console.log('Email:', email);
-    console.log('Phone Number:', phoneNumber);
+
+    let updateUserData = { ...userData, name: name, email: email, phone: phoneNumber };
+    setUserData(updateUserData);
+
+
+    fetch(url_API, {
+      method: 'PUT',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+
+      },
+      body: JSON.stringify(updateUserData),
+    })
+      .then((res) => {
+
+        if (res.status == 200) {
+          Alert.alert('Notification', "Successfully Edit Profile");
+          getUserFromAPI
+        }
+      }).catch((ex) => console.log(ex))
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity
-        style={{marginTop:50}}
-         onPress={() => navigation.goBack()}>
+          style={{ marginTop: 50 }}
+          onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
         <Text style={styles.heading}>Profile</Text>
@@ -66,7 +106,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   heading: {
-    marginTop:50,
+    marginTop: 50,
     fontSize: 24,
     fontWeight: 'bold',
     marginLeft: 40,
@@ -77,7 +117,7 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 50,
     marginBottom: 20,
-    alignSelf:'center'
+    alignSelf: 'center'
   },
   input: {
     height: 40,
