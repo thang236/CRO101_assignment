@@ -1,20 +1,54 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, FlatList, RefreshControl } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet, FlatList, RefreshControl, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import QuantitySelector from '../quantitySelector';
-import img3 from '../../assets/img3.jpeg';
+import { useFocusEffect } from '@react-navigation/native';
+let url_del;
 
-const url_cart = 'http://192.168.1.6:3000/carts';
+
+const url_cart = 'http://localhost:3000/carts';
 
 const Cart = ({ navigation }) => {
   const [products, setProducts] = useState([]);
   const [total, setTotal] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+  const [deleteConfirmationVisible, setDeleteConfirmationVisible] = useState(false);
 
-  useEffect(() => {
-    getProdcutFromAPI();
-  }, [products]);
+
+
+  const handleConfirmDelete = () => {
+    fetch(url_del, {
+      method: 'DELETE',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      }
+    })
+      .then((res) => {
+        if (res.status == 200) {
+          console.log('Delete');
+          getProdcutFromAPI();
+
+        }
+      }).catch((ex) => console.log(ex));
+    setDeleteConfirmationVisible(false);
+
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteConfirmationVisible(false);
+  };
+
+
+  useFocusEffect(
+    React.useCallback(() => {
+
+      getProdcutFromAPI();
+      return () => {
+      };
+    }, [])
+  );
 
   const getProdcutFromAPI = () => {
     fetch(url_cart)
@@ -48,22 +82,11 @@ const Cart = ({ navigation }) => {
 
 
   const handleRemoveCart = (id) => {
-    let url_del = 'http://192.168.1.6:3000/carts/' + id;
+    url_del = 'http://localhost:3000/carts/' + id;
     console.log(url_del);
+    setDeleteConfirmationVisible(true)
 
-    fetch(url_del, {
-      method: 'DELETE',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      }
-    })
-      .then((res) => {
-        if (res.status == 200) {
-          console.log('Delete');
-          getProdcutFromAPI();
-        }
-      }).catch((ex) => console.log(ex));
+
   }
 
   const renderProductItem = ({ item, index }) => (
@@ -120,13 +143,39 @@ const Cart = ({ navigation }) => {
         data={products}
         renderItem={renderProductItem}
         keyExtractor={(item, index) => index.toString()}
-        refreshControl={ // Sử dụng RefreshControl để xử lý sự kiện làm mới
+        refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
           />
         }
       />
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={deleteConfirmationVisible}
+        onRequestClose={handleCancelDelete}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>Bạn có chắc chắn muốn xóa không?</Text>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={{ ...styles.button, backgroundColor: '#2196F3' }}
+                onPress={handleCancelDelete}
+              >
+                <Text style={styles.textStyle}>Hủy</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{ ...styles.button, backgroundColor: '#FF0000' }}
+                onPress={handleConfirmDelete}
+              >
+                <Text style={styles.textStyle}>Xác nhận</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       <View style={styles.total}>
         <View style={styles.flexRowTotal}>
@@ -236,6 +285,49 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignSelf: 'center',
   },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalView: {
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+  },
+  button: {
+    borderRadius: 10,
+    padding: 10,
+    elevation: 2,
+    marginHorizontal: 10,
+  },
+  textStyle: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+
 });
+
+
 
 export default Cart;

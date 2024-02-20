@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
-const url_api = 'http://192.168.1.6:3000/contacts';
+const url_api = 'http://localhost:3000/contacts';
 
 const Contact = () => {
 

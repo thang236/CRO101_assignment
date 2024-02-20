@@ -21,7 +21,7 @@ const Login = ({ navigation }) => {
   }, []);
 
   const getDatafromAPI = () => {
-    fetch('http://192.168.1.6:3000/users')
+    fetch('http://localhost:3000/users')
       .then(response => response.json())
       .then(data => {
         const id = data.map(user => user.id)

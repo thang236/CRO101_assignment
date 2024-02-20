@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, RefreshControl } from 'react-native';
+import { View, Text, FlatList, StyleSheet, RefreshControl, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
-const url_orders = 'http://192.168.1.6:3000/orders';
+const url_orders = 'http://localhost:3000/orders';
 
-const History = () => {
+const History = ({ navigation }) => {
     const [ordersData, setOrdersData] = useState([]);
     const [refreshing, setRefreshing] = useState(false);
 
@@ -30,7 +31,6 @@ const History = () => {
     };
 
     const renderItem = ({ item }) => {
-        // Tính tổng giá trị của đơn hàng
         const calculateTotal = () => {
             let total = 0;
             Object.values(item).forEach((product) => {
@@ -42,7 +42,10 @@ const History = () => {
         };
 
         return (
-            <View style={{ marginBottom: 20 }}>
+            <View style={{
+                marginBottom: 20, backgroundColor: '#FBFBFA', padding: 20,
+                borderRadius: 10,
+            }}>
                 <Text style={{ color: 'red', fontWeight: 'bold', fontSize: 20 }}>ID bill: {item.id}</Text>
                 {Object.values(item).map((product, index) => (
                     typeof product === 'object' && (
@@ -59,7 +62,14 @@ const History = () => {
 
     return (
         <View style={styles.container}>
-            <Text style={{ fontSize: 20, marginBottom: 10, marginTop: 60 }}>List of history order</Text>
+            <View style={styles.header}>
+                <TouchableOpacity style={styles.backIcon} onPress={() => navigation.navigate("Setting")}>
+                    <Ionicons name="arrow-back" size={30} />
+                </TouchableOpacity>
+                <Text style={{ fontSize: 30, fontWeight: 'bold', textAlign: 'center' }}>List of history order</Text>
+            </View>
+
+
             <FlatList
                 data={ordersData}
                 renderItem={renderItem}
@@ -80,6 +90,17 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 20,
         backgroundColor: '#fff',
+    },
+    header: {
+        flexDirection: 'row',
+        marginTop: 65,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 30,
+    },
+    backIcon: {
+        position: 'absolute',
+        left: 15,
     },
 });
 

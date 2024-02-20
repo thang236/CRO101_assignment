@@ -12,7 +12,7 @@ const ProfileForm = ({ navigation }) => {
   const [email, setEmail] = useState('thanghtph31577@fpt.edu.vn');
   const [phoneNumber, setPhoneNumber] = useState('123-456-7890');
   const [userData, setUserData] = useState({});
-  const url_API = 'http://192.168.1.6:3000/users/' + idSend;
+  const url_API = 'http://localhost:3000/users/' + idSend;
 
   useEffect(() => {
     getUserFromAPI();

@@ -1,27 +1,33 @@
 import React, { useEffect, useState } from 'react';
-import { View, Image, TextInput, TouchableOpacity, FlatList, Text, ScrollView } from 'react-native';
+import { View, Image, TextInput, TouchableOpacity, FlatList, Text, ScrollView, Alert } from 'react-native';
+
+
 import { Ionicons } from '@expo/vector-icons';
 import styles from './style';
 import avatar1 from '../../assets/avt.jpeg';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useFocusEffect } from '@react-navigation/native';
 
 const Home = ({ navigation }) => {
-  const url_Category = 'http://192.168.1.6:3000/category';
-  const url_Product = 'http://192.168.1.6:3000/products';
+
+  const url_Category = 'http://localhost:3000/category';
+  const url_Product = 'http://localhost:3000/products';
+
   const [userData, setUserData] = useState({});
   const [nameUser, setNameUser] = useState('');
+  const [searching, setSetsearching] = useState(false);
+  const [searchKeyWord, setSearchKeyWord] = useState('');
+  const [fliterPro, setFliterPro] = useState([]);
 
 
   const route = useRoute();
   const nameUserSend = route.params?.nameUserSend || '';
-  const url_API_user = 'http://192.168.1.6:3000/users/' + nameUserSend;
+  const url_API_user = 'http://localhost:3000/users/' + nameUserSend;
   const getUserFromAPI = () => {
     fetch(url_API_user)
       .then(res => res.json())
       .then(data => {
         setUserData(data);
         setNameUser(data.name)
-        console.log(123123, nameUser);
       })
 
   }
@@ -34,6 +40,7 @@ const Home = ({ navigation }) => {
   const [category, setCategory] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(1);
   const [flatListKey, setFlatListKey] = useState(0);
+  const url_cart = 'http://localhost:3000/carts';
 
 
 
@@ -43,6 +50,23 @@ const Home = ({ navigation }) => {
     getDataProductfromAPI(category);
     getUserFromAPI();
   };
+
+  const handleAddToCart = (item) => {
+    const productCart = { ...item, quantity: 1 }
+    fetch(url_cart, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(productCart)
+    })
+      .then((res) => {
+        if (res.status == 201) {
+          Alert.alert('Notification', 'Add to Cart Complite')
+        }
+      })
+  }
 
 
 
@@ -55,13 +79,19 @@ const Home = ({ navigation }) => {
   }, [navigation]);
 
   useEffect(() => {
-
     getDataProductfromAPI(category);
     getDataCategoryfromAPI();
     getDataProductfromAPI(selectedCategory);
-    getUserFromAPI();
-  }, [userData.name]);
+  }, []);
 
+  useFocusEffect(
+    React.useCallback(() => {
+
+      getUserFromAPI();
+      return () => {
+      };
+    }, [])
+  );
 
   const getDataCategoryfromAPI = () => {
     fetch(url_Category)
@@ -120,7 +150,7 @@ const Home = ({ navigation }) => {
         </View>
         <TouchableOpacity
           onPress={() => {
-            alert('add cart complete', 'Notification');
+            handleAddToCart(item);
           }}
         >
           <View style={styles.iconAdd}>
@@ -153,6 +183,59 @@ const Home = ({ navigation }) => {
     </TouchableOpacity>
   );
 
+  const renderSearchItem = ({ item }) => (
+    <TouchableOpacity style={styles.boxOffer}
+      onPress={() => {
+        navigation.navigate('Product', {
+          data: item.image,
+          namePro: item.nameProduct,
+          withwhere: item.description,
+          money: item.price,
+          favorite: item.isFavorite,
+          id: item.id,
+          category: item.category
+        });
+
+      }}
+    >
+      <Image source={{ uri: item.image }} style={styles.imgOffer} />
+      <View style={{ alignSelf: 'center', width: '50%', }}>
+        <Text style={{ fontSize: 19 }}>{item.nameProduct}</Text>
+        <Text style={{ fontSize: 14 }}>{item.description}</Text>
+
+
+      </View>
+
+    </TouchableOpacity>
+  );
+
+  const getDataSearch = (text) => {
+    fetch(url_Product)
+      .then((res) => res.json()).then(data => {
+
+        setFliterPro(data);
+        const filtered = data.filter(product =>
+          product.nameProduct.toLowerCase().includes(text.toLowerCase())
+        );
+        setFliterPro(filtered);
+
+      }).catch((ex) => console.log(ex))
+  }
+
+  const handleSearch = (text) => {
+    if (text == '') {
+      setSetsearching(false)
+    } else {
+      setSetsearching(true)
+
+      getDataSearch(text);
+
+    }
+
+  }
+
+
+
   return (
     <View style={styles.container}>
       <View style={styles.innerContainer}>
@@ -173,30 +256,43 @@ const Home = ({ navigation }) => {
         <View style={styles.search}>
           <TextInput
             placeholder='Search coffee'
-            style={styles.input}></TextInput>
+            style={styles.input}
+            onChangeText={(text) => handleSearch(text)}
+          ></TextInput>
         </View>
-        <Text style={{ fontSize: 25, fontWeight: 'bold' }}>Category</Text>
-        <FlatList
-          horizontal
-          data={category}
-          renderItem={renderCategoryItem}
-          keyExtractor={(item, index) => index.toString()}
-        />
+        <ScrollView style={{ marginBottom: 140, display: searching ? 'none' : 'flex' }}>
+          <Text style={{ fontSize: 25, fontWeight: 'bold' }}>Category</Text>
+          <FlatList
+            horizontal
+            data={category}
+            renderItem={renderCategoryItem}
+            keyExtractor={(item, index) => index.toString()}
+          />
+
+          <FlatList
+            key={flatListKey}
+            horizontal
+            data={products}
+            renderItem={renderProductItem}
+
+            keyExtractor={(item, index) => index.toString()}
+          />
+          <Text style={styles.content}>Special offer</Text>
+          <FlatList
+
+            data={products}
+            renderItem={renderSpecialItem}
+            keyExtractor={(item, index) => index.toString()}
+
+          />
+        </ScrollView>
 
         <FlatList
-          key={flatListKey}
-          horizontal
-          data={products}
-          renderItem={renderProductItem}
+          style={{ marginBottom: 140, display: !searching ? 'none' : 'flex' }}
+          data={fliterPro}
+          renderItem={renderSearchItem}
+          keyExtractor={(item, index) => index.toString()}
 
-          keyExtractor={(item, index) => index.toString()}
-        />
-        <Text style={styles.content}>Special offer</Text>
-        <FlatList
-          data={products}
-          renderItem={renderSpecialItem}
-          keyExtractor={(item, index) => index.toString()}
-          scrollEnabled
         />
 
       </View>

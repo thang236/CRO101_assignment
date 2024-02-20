@@ -13,29 +13,30 @@ const Register = ({ navigation }) => {
   const [errorMessage, setErrorMessage] = useState('');
 
   const registerUser = (userData) => {
-    fetch('http://192.168.1.6:3000/users', {
+    fetch('http://10.24.17.203:3000/users', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(userData),
     })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return response.json();
-    })
-    .then(data => {
-      console.log('User registered successfully:', data);
-      console.log('Registration successful');
-      navigation.navigate('main', { nameUserSend: fullname
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('User registered successfully:', data);
+        console.log('Registration successful');
+        navigation.navigate('main', {
+          nameUserSend: fullname
 
+        });
+      })
+      .catch(error => {
+        console.error('Error registering user:', error);
       });
-    })
-    .catch(error => {
-      console.error('Error registering user:', error);
-    });
   };
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const isValidEmail = (email) => {
@@ -50,15 +51,15 @@ const Register = ({ navigation }) => {
 
 
   const handleRegister = () => {
-    if (fullname.trim() === '' || username.trim() === '' || password.trim() === ''|| email.trim() ==='' || phone.trim() ==='' || address.trim() ==='') {
+    if (fullname.trim() === '' || username.trim() === '' || password.trim() === '' || email.trim() === '' || phone.trim() === '' || address.trim() === '') {
       setErrorMessage('Please fill in all required fields.');
-    }else if(!isValidEmail(email)) {
+    } else if (!isValidEmail(email)) {
       setErrorMessage('Please fill true email.');
-      
+
     } else if (!isValidPhone(phone)) {
       setErrorMessage('Please fill true phone.');
     }
-     else {
+    else {
       const userData = {
         username: username,
         password: password,

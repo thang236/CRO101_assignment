@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Alert, Modal, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
-const url_api = 'http://192.168.1.6:3000/products?isFavorite=1';
+const url_api = 'http://localhost:3000/products?isFavorite=1';
 
 const Favorite = () => {
   const [favoriteItems, setFavoriteItem] = useState([]);
@@ -17,16 +17,21 @@ const Favorite = () => {
     setRefreshing(true);
     console.log("Bắt đầu load lại dữ liệu");
 
-    setTimeout(() => {
-      getFavoritesfromAPI();
-      setRefreshing(false);
-      console.log("Đã load xong");
-    }, 1000);
+    getFavoritesfromAPI();
+    setRefreshing(false);
+    console.log("Đã load xong");
   }, []);
 
-  useEffect(() => {
-    getFavoritesfromAPI();
-  }, []);
+  // useEffect(() => {
+  //   getFavoritesfromAPI();
+  // }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      getFavoritesfromAPI();
+      return () => {
+      };
+    }, [])
+  );
 
   const getFavoritesfromAPI = async () => {
     try {
@@ -45,9 +50,10 @@ const Favorite = () => {
 
   const handleConfirmDelete = () => {
     if (selectedItemId) {
-      let url_Update = 'http://192.168.1.6:3000/products/' + selectedItemId;
+      let url_Update = 'http://localhost:3000/products/' + selectedItemId;
+      console.log(url_Update);
       fetch(url_Update, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
@@ -55,8 +61,10 @@ const Favorite = () => {
         body: JSON.stringify({ isFavorite: false })
       })
         .then((res) => {
+          console.log(res.status);
           if (res.status == 200) {
             Alert.alert('Notification', "Successfully deleted favorites list");
+            getFavoritesfromAPI();
           }
         })
         .catch((ex) => {

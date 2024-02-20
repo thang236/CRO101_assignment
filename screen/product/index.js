@@ -9,8 +9,8 @@ const Product = ({ navigation }) => {
   const { data, namePro, withwhere, money, favorite, id, category } = route.params || {};
   const [selectedSize, setSelectedSize] = useState('small');
   const [isFavorite, setIsFavorite] = useState(favorite);
-  const url_api = 'http://192.168.1.6:3000/carts';
-  const url_apiPro = 'http://192.168.1.6:3000/products/' + id;
+  const url_api = 'http://localhost:3000/carts';
+  const url_apiPro = 'http://localhost:3000/products/' + id;
 
   const [product, setProduct] = useState([]);
 
@@ -63,7 +63,12 @@ const Product = ({ navigation }) => {
     })
       .then((res) => {
         if (res.status == 200) {
-          alert("Sửa thành công");
+          if (isFavorite) {
+            Alert.alert("Remove to favorite complite");
+          } else {
+            Alert.alert("Add to favorite complite");
+
+          }
         }
       })
       .catch((ex) => {
@@ -122,7 +127,7 @@ const Product = ({ navigation }) => {
       <View style={styles.imageContainer}>
         <Image style={styles.image} source={{ uri: product.image }} />
         <View style={styles.overlay}>
-          <Text style={styles.overlayTextLarge}>{product.name}</Text>
+          <Text style={styles.overlayTextLarge}>{product.nameProduct}</Text>
           <Text style={styles.overlayTextSmall}>{product.description}</Text>
         </View>
         <View style={styles.overlayBottom} />

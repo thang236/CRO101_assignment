@@ -6,8 +6,8 @@ import { Ionicons } from '@expo/vector-icons';
 import card from '../../assets/debitCard.png';
 import cash from '../../assets/cash.jpeg';
 import bankTransfer from '../../assets/bankTransfer.jpeg';
-const url_api_orders = 'http://192.168.1.6:3000/orders';
-const url_cart_del = 'http://192.168.1.6:3000/carts/';
+const url_api_orders = 'http://localhost:3000/orders';
+const url_cart_del = 'http://localhost:3000/carts/';
 
 const Payments = ({ navigation }) => {
   const route = useRoute();
